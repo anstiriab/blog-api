@@ -1,0 +1,17 @@
+# compiled output
+dist
+logs
+node_modules
+npm-debug.log
+
+# config
+.git*
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# docs
+**/*.md
+
+# IDE
+.vscode

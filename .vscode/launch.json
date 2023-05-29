@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register"],
+      "args": ["${workspaceFolder}/src/main.ts"],
+      "stopOnEntry": false,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "debug test",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["--inspect-brk", "-r", "tsconfig-paths/register", "-r", "ts-node/register", "node_modules/.bin/jest", "--runInBand"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

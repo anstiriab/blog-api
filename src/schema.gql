@@ -1,0 +1,141 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Blog {
+  createdAt: DateTime!
+  description: String!
+  id: Int!
+  title: String!
+  updatedAt: DateTime!
+  writer: User!
+}
+
+type BlogPost {
+  blog: Blog!
+  content: String!
+  createdAt: DateTime!
+  id: Int!
+  title: String!
+  updatedAt: DateTime!
+  writer: User!
+}
+
+input BlogPostsFilterInput {
+  blogId: Int
+  writerId: Int
+}
+
+enum BlogPostsOrderByEnum {
+  createdAtAsc
+  createdAtDesc
+  titleAsc
+  titleDesc
+}
+
+input BlogsFilterInput {
+  writerId: Int
+}
+
+enum BlogsOrderByEnum {
+  createdAtAsc
+  createdAtDesc
+}
+
+input CreateBlogInput {
+  description: String!
+  title: String!
+}
+
+input CreateBlogPostInput {
+  blogId: Int!
+  content: String!
+  title: String!
+}
+
+input CreateUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  role: UserRoleEnum!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createBlog(input: CreateBlogInput!): Blog!
+  createBlogPost(input: CreateBlogPostInput!): BlogPost!
+  createUser(input: CreateUserInput!): User!
+  removeBlog(id: Int!): Blog!
+  removeBlogPost(id: Int!): BlogPost!
+  removeUser: User!
+  signIn(input: SignInInput!): SignInOutput!
+  updateBlog(id: Int!, input: UpdateBlogInput!): Blog!
+  updateBlogPost(id: Int!, input: UpdateBlogPostInput!): BlogPost!
+  updateUser(input: UpdateUserInput!): User!
+}
+
+type PaginatedBlogOutput {
+  count: Int!
+  edges: [Blog!]
+}
+
+type PaginatedBlogPostOutput {
+  count: Int!
+  edges: [BlogPost!]
+}
+
+type Query {
+  blog(id: Int!): Blog!
+  blogPost(id: Int!): BlogPost!
+  blogPosts(filter: BlogPostsFilterInput, limit: Int! = 10, orderBy: BlogPostsOrderByEnum, skip: Int! = 0): PaginatedBlogPostOutput!
+  blogs(filter: BlogsFilterInput, limit: Int! = 10, orderBy: BlogsOrderByEnum, skip: Int! = 0): PaginatedBlogOutput!
+  user(id: Int!): User!
+  users: [User!]!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+type SignInOutput {
+  accessToken: String!
+}
+
+input UpdateBlogInput {
+  description: String
+  title: String
+}
+
+input UpdateBlogPostInput {
+  blogId: Int
+  content: String
+  title: String
+}
+
+input UpdateUserInput {
+  email: String
+  firstName: String
+  lastName: String
+  password: String
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: Int!
+  lastName: String!
+  role: UserRoleEnum!
+  updatedAt: DateTime!
+}
+
+enum UserRoleEnum {
+  moderator
+  writer
+}
