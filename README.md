@@ -2,7 +2,14 @@
 
 ## Description
 
-This is an example of Blog API that was built using NestJS, TypeORM and PostgreSQL database to store the blog posts and GraphQL for API endpoints. 
+This is an example of Blog API that was built using NestJS, TypeORM and PostgreSQL database to store the blog posts and GraphQL for API endpoints.
+
+The application has the following entities: Blog, BlogPost, User.
+User have one of two roles: Writer, Moderator.
+
+[Link for API & GraphQL Playground](https://white-breeze-1258.fly.dev/graphql)
+
+[Postman collection](https://www.postman.com/lunar-module-technologist-11734317/workspace/blog-api/collection/26140012-643ef47d-ab23-42f6-905e-0a37d24a0561?action=share&creator=26140012)
 
 ## Running the app:
 
