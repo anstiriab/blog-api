@@ -1,16 +1,27 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
-import { BLOG_POST_TITLE_LENGTH } from '../blog-post.interface';
-import { MaxLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, MaxLength, Min } from 'class-validator';
+import {
+  BLOG_POST_CONTENT_MAX_LENGTH,
+  BLOG_POST_TITLE_MAX_LENGTH,
+} from '../blog-post.interface';
 
 @InputType()
 export class CreateBlogPostInput {
-  @MaxLength(BLOG_POST_TITLE_LENGTH)
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(BLOG_POST_TITLE_MAX_LENGTH)
   @Field(() => String)
   title: string;
 
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(BLOG_POST_CONTENT_MAX_LENGTH)
   @Field(() => String)
   content: string;
 
+  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   @Field(() => Int)
   blogId: number;
 }

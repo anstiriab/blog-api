@@ -1,4 +1,5 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { ParseIntPipe } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { User } from 'src/auth/user.decorator';
 import { UserEntity } from 'src/user/user.entity';
@@ -22,7 +23,7 @@ export class BlogResolver {
   }
 
   @Query(() => BlogOutput, { name: 'blog' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
     return this.blogService.findOne(id);
   }
 
@@ -36,7 +37,7 @@ export class BlogResolver {
   @Roles(UserRoleEnum.writer, UserRoleEnum.moderator)
   updateBlog(
     @User() user: UserEntity,
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int }, ParseIntPipe) id: number,
     @Args('input') input: UpdateBlogInput,
   ) {
     return this.blogService.update(user, id, input);
@@ -46,7 +47,7 @@ export class BlogResolver {
   @Roles(UserRoleEnum.writer, UserRoleEnum.moderator)
   removeBlog(
     @User() user: UserEntity,
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int }, ParseIntPipe) id: number,
   ) {
     return this.blogService.remove(user, id);
   }

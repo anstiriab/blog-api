@@ -3,7 +3,8 @@ import { DefaultEntityI } from 'src/common/defaultEntity/default.interface';
 import { BlogI } from 'src/blog/blog.interface';
 import { UserI } from 'src/user/user.interface';
 
-export const BLOG_POST_TITLE_LENGTH = 150;
+export const BLOG_POST_TITLE_MAX_LENGTH = 150;
+export const BLOG_POST_CONTENT_MAX_LENGTH = 50000;
 
 export interface BlogPostI extends DefaultEntityI {
   title: string;

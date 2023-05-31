@@ -2,12 +2,12 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { DefaultEntity } from 'src/common/defaultEntity/default.entity';
 import { UserEntity } from 'src/user/user.entity';
 import { BlogEntity } from 'src/blog/blog.entity';
-import { BLOG_TITLE_LENGTH } from 'src/blog/blog.interface';
+import { BLOG_TITLE_MAX_LENGTH } from 'src/blog/blog.interface';
 import { BlogPostI } from './blog-post.interface';
 
 @Entity('blog_post')
 export class BlogPostEntity extends DefaultEntity implements BlogPostI {
-  @Column({ length: BLOG_TITLE_LENGTH })
+  @Column({ length: BLOG_TITLE_MAX_LENGTH })
   title: string;
 
   @Column('text')
