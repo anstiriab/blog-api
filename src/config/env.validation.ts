@@ -19,7 +19,7 @@ class EnvironmentVariables {
   PASSWORD_SALT: string;
 }
 
-export function validate(config: Record<string, unknown>) {
+export function validateConfig(config: Record<string, unknown>) {
   const validatedConfig = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });

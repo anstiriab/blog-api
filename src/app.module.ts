@@ -8,15 +8,15 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { BlogModule } from './blog/blog.module';
 import { BlogPostModule } from './blog-post/blog-post.module';
-import { appConfig, authConfig, databaseConfig, validate } from './config';
+import { configurations, validateConfig } from './config';
 import { AppController } from './app.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, authConfig, databaseConfig],
-      validate,
+      load: configurations,
+      validate: validateConfig,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

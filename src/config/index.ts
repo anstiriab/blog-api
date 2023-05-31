@@ -1,14 +1,14 @@
 import appConfig, { AppConfigI } from './app.config';
 import authConfig, { AuthConfigI } from './auth.config';
 import databaseConfig, { DatabaseConfigI } from './database.config';
-import { validate } from './env.validation';
+import { validateConfig } from './env.validation';
+
+const configurations = [appConfig, authConfig, databaseConfig];
 
 export {
-  appConfig,
+  configurations,
+  validateConfig,
   AppConfigI,
-  authConfig,
   AuthConfigI,
-  databaseConfig,
   DatabaseConfigI,
-  validate,
 };

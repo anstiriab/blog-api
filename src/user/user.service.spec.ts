@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { MockType, repositoryMockFactory } from 'src/utils/testing';
 import { UserService } from './user.service';
 import { UserEntity } from './user.entity';
-import { authConfig } from 'src/config';
+import authConfig from 'src/config/auth.config';
 import { UserRoleEnum } from './user.interface';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
