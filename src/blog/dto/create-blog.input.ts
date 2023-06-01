@@ -3,7 +3,7 @@ import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import {
   BLOG_DESCRIPTION_MAX_LENGTH,
   BLOG_TITLE_MAX_LENGTH,
-} from '../blog.interface';
+} from '../blog.constants';
 
 @InputType()
 export class CreateBlogInput {

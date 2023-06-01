@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PaginatedTypeI } from 'src/common/pagination/pagination.output';
+import { PaginatedTypeI } from 'src/common/baseEntity/base.interface';
 import { UserEntity } from 'src/user/user.entity';
 import { UserRoleEnum } from 'src/user/user.interface';
 import { BlogsOrderByEnum, GetBlogsArgsI } from './blog.interface';

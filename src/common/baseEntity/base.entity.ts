@@ -3,9 +3,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { DefaultEntityI } from './default.interface';
+import { BaseEntityI } from './base.interface';
 
-export abstract class DefaultEntity implements DefaultEntityI {
+export abstract class BaseEntity implements BaseEntityI {
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -1,12 +1,11 @@
-import { PaginationArgsI } from 'src/common/pagination/pagination.args';
-import { DefaultEntityI } from 'src/common/defaultEntity/default.interface';
+import {
+  BaseEntityI,
+  PaginationArgsI,
+} from 'src/common/baseEntity/base.interface';
 import { BlogPostI } from 'src/blog-post/blog-post.interface';
 import { UserI } from 'src/user/user.interface';
 
-export const BLOG_TITLE_MAX_LENGTH = 150;
-export const BLOG_DESCRIPTION_MAX_LENGTH = 1000;
-
-export interface BlogI extends DefaultEntityI {
+export interface BlogI extends BaseEntityI {
   title: string;
   description?: string;
   writer: UserI;

@@ -1,0 +1,2 @@
+export const BLOG_TITLE_MAX_LENGTH = 150;
+export const BLOG_DESCRIPTION_MAX_LENGTH = 1000;

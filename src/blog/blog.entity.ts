@@ -1,11 +1,12 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
-import { DefaultEntity } from 'src/common/defaultEntity/default.entity';
+import { BaseEntity } from 'src/common/baseEntity/base.entity';
 import { UserEntity } from 'src/user/user.entity';
-import { BLOG_TITLE_MAX_LENGTH, BlogI } from './blog.interface';
+import { BlogI } from './blog.interface';
 import { BlogPostEntity } from 'src/blog-post/blog-post.entity';
+import { BLOG_TITLE_MAX_LENGTH } from './blog.constants';
 
 @Entity('blog')
-export class BlogEntity extends DefaultEntity implements BlogI {
+export class BlogEntity extends BaseEntity implements BlogI {
   @Column({ length: BLOG_TITLE_MAX_LENGTH })
   title: string;
 

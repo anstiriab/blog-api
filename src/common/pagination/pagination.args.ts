@@ -1,11 +1,6 @@
 import { ArgsType, Field, Int } from '@nestjs/graphql';
 import { IsInt, Max, Min } from 'class-validator';
 
-export interface PaginationArgsI {
-  skip: number;
-  limit: number;
-}
-
 @ArgsType()
 export class PaginationArgs {
   @IsInt()

@@ -1,0 +1,2 @@
+export const BLOG_POST_TITLE_MAX_LENGTH = 150;
+export const BLOG_POST_CONTENT_MAX_LENGTH = 50000;

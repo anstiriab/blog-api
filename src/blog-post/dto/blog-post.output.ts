@@ -1,11 +1,11 @@
 import { ObjectType, Field } from '@nestjs/graphql';
-import { DefaultEntityOutput } from 'src/common/defaultEntity/default.output';
+import { BaseEntityOutput } from 'src/common/baseEntity/base.output';
 import { BlogOutput } from 'src/blog/dto';
 import { UserOutput } from 'src/user/dto';
 import { Paginated } from 'src/common/pagination/pagination.output';
 
 @ObjectType('BlogPost')
-export class BlogPostOutput extends DefaultEntityOutput {
+export class BlogPostOutput extends BaseEntityOutput {
   @Field(() => String)
   title: string;
 
