@@ -11,6 +11,16 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "watch",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug", "--", "--inspect-brk"],
+      "console": "integratedTerminal",
+      "restart": true,
+      "autoAttachChildProcesses": true
+    },
+    {
       "name": "debug test",
       "type": "node",
       "request": "launch",
