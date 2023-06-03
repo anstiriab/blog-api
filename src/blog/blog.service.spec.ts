@@ -1,58 +1,42 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import {
-  MockType,
-  createQueryBuilderMock,
-  repositoryMockFactory,
-} from 'src/utils/testing';
+import { ForbiddenException } from '@nestjs/common';
+import { MockType, customRepositoryMockFactory } from 'src/utils/testing';
 import { BlogService } from './blog.service';
 import { BlogEntity } from './blog.entity';
 import { UserEntity } from 'src/user/user.entity';
-import { BlogsOrderByEnum } from './blog.interface';
 import { UserRoleEnum } from 'src/user/user.interface';
+import { BlogI } from './blog.interface';
+import { BlogRepository } from './blog.repository';
+import { BLOG_REPOSITORY_TOKEN } from './blog.constants';
 
 describe('BlogService', () => {
   let service: BlogService;
-  let repositoryMock: MockType<Repository<BlogEntity>>;
-  let blog: BlogEntity;
+  let customRepositoryMock: MockType<BlogRepository>;
+  let blog: BlogI;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BlogService,
         {
-          provide: getRepositoryToken(BlogEntity),
-          useFactory: repositoryMockFactory,
+          provide: BLOG_REPOSITORY_TOKEN,
+          useFactory: customRepositoryMockFactory,
         },
       ],
     }).compile();
 
     service = module.get<BlogService>(BlogService);
-    repositoryMock = module.get(getRepositoryToken(BlogEntity));
+    customRepositoryMock = module.get(BLOG_REPOSITORY_TOKEN);
   });
 
   it('should find blog', async () => {
     const blogId = 1000;
     const blog = new BlogEntity();
     blog.id = blogId;
-    repositoryMock.findOne.mockReturnValue(blog);
+    customRepositoryMock.getOne.mockReturnValue(blog);
 
-    const result = await service.findOne(blogId);
+    const result = await service.getBlog(blogId);
     expect(result).toEqual(blog);
-  });
-
-  it('should not find blog', async () => {
-    const blogId = 1000;
-    repositoryMock.findOne.mockReturnValue(undefined);
-
-    try {
-      await service.findOne(blogId);
-      expect(true).toBe(false);
-    } catch (error) {
-      expect(error).toBeInstanceOf(NotFoundException);
-    }
   });
 
   it('should return list of blogs', async () => {
@@ -60,57 +44,13 @@ describe('BlogService', () => {
     const musicBlog = new BlogEntity();
     const expectedBlogs = [techBlog, musicBlog];
 
-    const createQueryBuilder = createQueryBuilderMock();
-    createQueryBuilder.getMany.mockReturnValue(expectedBlogs);
-    createQueryBuilder.getCount.mockReturnValue(2);
-
-    repositoryMock.createQueryBuilder.mockReturnValue(createQueryBuilder);
-
-    const result = await service.findAll({ skip: 0, limit: 10 });
-
-    expect(result.count).toBe(2);
-    expect(result.edges).toBe(expectedBlogs);
-  });
-
-  it('should return list of blogs by writerId', async () => {
-    const writer = new UserEntity();
-    writer.id = 1;
-    const techBlog = new BlogEntity();
-    techBlog.writer = writer;
-
-    const expectedBlogs = [techBlog];
-
-    const createQueryBuilder = createQueryBuilderMock();
-    createQueryBuilder.getMany.mockReturnValue(expectedBlogs);
-    createQueryBuilder.getCount.mockReturnValue(1);
-
-    repositoryMock.createQueryBuilder.mockReturnValue(createQueryBuilder);
-
-    const result = await service.findAll({
-      skip: 0,
-      limit: 10,
-      filter: { writerId: writer.id },
+    customRepositoryMock.getMany.mockReturnValue({
+      count: 2,
+      edges: expectedBlogs,
     });
 
-    expect(result.count).toBe(1);
-    expect(result.edges).toBe(expectedBlogs);
-  });
-
-  it('should return list of blogs with sorting', async () => {
-    const techBlog = new BlogEntity();
-    const musicBlog = new BlogEntity();
-    const expectedBlogs = [techBlog, musicBlog];
-
-    const createQueryBuilder = createQueryBuilderMock();
-    createQueryBuilder.getMany.mockReturnValue(expectedBlogs);
-    createQueryBuilder.getCount.mockReturnValue(2);
-
-    repositoryMock.createQueryBuilder.mockReturnValue(createQueryBuilder);
-
-    const result = await service.findAll({
-      skip: 0,
-      limit: 10,
-      orderBy: BlogsOrderByEnum.createdAtAsc,
+    const result = await service.getBlogs({
+      pagination: { skip: 0, limit: 10 },
     });
 
     expect(result.count).toBe(2);
@@ -129,13 +69,17 @@ describe('BlogService', () => {
     newBlog.id = 1;
     newBlog.writer = writer;
 
-    repositoryMock.save.mockReturnValue(newBlog);
+    customRepositoryMock.createOne.mockReturnValue(newBlog);
 
-    blog = await service.create(writer, blogData);
+    const result = await service.createBlog(writer, blogData);
+    if (result) blog = result;
 
     expect(blog).toBeInstanceOf(BlogEntity);
     expect(blog).toHaveProperty('writer');
-    expect(repositoryMock.create).toHaveBeenCalledWith(blogData);
+    expect(customRepositoryMock.createOne).toHaveBeenCalledWith({
+      ...blogData,
+      writer,
+    });
   });
 
   it('should update blog', async () => {
@@ -146,9 +90,9 @@ describe('BlogService', () => {
     };
 
     Object.assign(blog, newBlogData);
-    repositoryMock.save.mockReturnValue(blog);
+    customRepositoryMock.updateOne.mockReturnValue(blog);
 
-    const result = await service.update(writer, blog.id, newBlogData);
+    const result = await service.updateBlog(writer, blog.id, newBlogData);
 
     expect(result).toBeInstanceOf(BlogEntity);
     expect(result.title).toEqual(newBlogData.title);
@@ -165,10 +109,10 @@ describe('BlogService', () => {
       description: 'updated description',
     };
 
-    jest.spyOn(service, 'findOne').mockImplementation(async () => blog);
+    jest.spyOn(service, 'getBlog').mockImplementation(async () => blog);
 
     try {
-      await service.update(anotherWriter, blog.id, newBlogData);
+      await service.updateBlog(anotherWriter, blog.id, newBlogData);
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(ForbiddenException);
@@ -178,8 +122,8 @@ describe('BlogService', () => {
   it('should remove blog', async () => {
     const writer = new UserEntity();
 
-    repositoryMock.remove.mockReturnValue(blog);
-    const result = await service.remove(writer, blog.id);
+    customRepositoryMock.removeOne.mockReturnValue(blog);
+    const result = await service.removeBlog(writer, blog.id);
 
     expect(result.id).toEqual(blog.id);
   });
@@ -189,10 +133,10 @@ describe('BlogService', () => {
     anotherWriter.id = 2;
     anotherWriter.role = UserRoleEnum.writer;
 
-    jest.spyOn(service, 'findOne').mockImplementation(async () => blog);
+    jest.spyOn(service, 'getBlog').mockImplementation(async () => blog);
 
     try {
-      await service.remove(anotherWriter, blog.id);
+      await service.removeBlog(anotherWriter, blog.id);
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(ForbiddenException);

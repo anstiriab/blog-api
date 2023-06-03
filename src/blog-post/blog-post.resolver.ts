@@ -8,7 +8,7 @@ import { BlogPostService } from './blog-post.service';
 import {
   BlogPostOutput,
   CreateBlogPostInput,
-  GetBlogPostsArgs,
+  GetManyBlogPostArgs,
   PaginatedBlogPostOutput,
   UpdateBlogPostInput,
 } from './dto';
@@ -18,13 +18,17 @@ export class BlogPostResolver {
   constructor(private readonly blogPostService: BlogPostService) {}
 
   @Query(() => PaginatedBlogPostOutput, { name: 'blogPosts' })
-  findAll(@Args() args: GetBlogPostsArgs) {
-    return this.blogPostService.findAll(args);
+  getBlogPosts(@Args() args: GetManyBlogPostArgs) {
+    const { skip, limit } = args;
+    return this.blogPostService.getBlogPosts({
+      ...args,
+      pagination: { skip, limit },
+    });
   }
 
   @Query(() => BlogPostOutput, { name: 'blogPost' })
-  findOne(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
-    return this.blogPostService.findOne(id);
+  getBlogPost(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
+    return this.blogPostService.getBlogPost(id);
   }
 
   @Mutation(() => BlogPostOutput)
@@ -33,7 +37,7 @@ export class BlogPostResolver {
     @User() user: UserEntity,
     @Args('input') input: CreateBlogPostInput,
   ) {
-    return this.blogPostService.create(user, input);
+    return this.blogPostService.createBlogPost(user, input);
   }
 
   @Mutation(() => BlogPostOutput)
@@ -43,7 +47,7 @@ export class BlogPostResolver {
     @Args('id', { type: () => Int }, ParseIntPipe) id: number,
     @Args('input') input: UpdateBlogPostInput,
   ) {
-    return this.blogPostService.update(user, id, input);
+    return this.blogPostService.updateBlogPost(user, id, input);
   }
 
   @Mutation(() => BlogPostOutput)
@@ -52,6 +56,6 @@ export class BlogPostResolver {
     @User() user: UserEntity,
     @Args('id', { type: () => Int }, ParseIntPipe) id: number,
   ) {
-    return this.blogPostService.remove(user, id);
+    return this.blogPostService.removeBlogPost(user, id);
   }
 }

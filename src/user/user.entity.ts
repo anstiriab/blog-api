@@ -1,11 +1,13 @@
 import { Column, Entity, OneToMany } from 'typeorm';
-import { DefaultEntity } from 'src/common/defaultEntity/default.entity';
-import { BlogEntity } from 'src/blog/blog.entity';
-import { NAME_LENGTH, UserI, UserRoleEnum } from './user.interface';
+import { Expose } from 'class-transformer';
+import { BaseEntity } from 'src/common/baseEntity/base.entity';
 import { BlogPostEntity } from 'src/blog-post/blog-post.entity';
+import { BlogEntity } from 'src/blog/blog.entity';
+import { UserI, UserRoleEnum } from './user.interface';
+import { NAME_LENGTH } from './user.constants';
 
 @Entity('user')
-export class UserEntity extends DefaultEntity implements UserI {
+export class UserEntity extends BaseEntity implements UserI {
   @Column({ length: NAME_LENGTH })
   firstName: string;
 
@@ -22,12 +24,17 @@ export class UserEntity extends DefaultEntity implements UserI {
   })
   role: UserRoleEnum;
 
-  @Column({ select: false })
+  @Column()
   password: string;
 
+  @Expose()
+  get fullName(): string {
+    return `${this.firstName} ${this.lastName}`;
+  }
+
   @OneToMany(() => BlogEntity, (blog) => blog.writer)
-  blogs: BlogEntity[];
+  blogs?: BlogEntity[];
 
   @OneToMany(() => BlogPostEntity, (blogPost) => blogPost.writer)
-  blogPosts: BlogPostEntity[];
+  blogPosts?: BlogPostEntity[];
 }

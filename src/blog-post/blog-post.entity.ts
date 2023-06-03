@@ -2,8 +2,8 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from 'src/common/baseEntity/base.entity';
 import { UserEntity } from 'src/user/user.entity';
 import { BlogEntity } from 'src/blog/blog.entity';
-import { BLOG_POST_TITLE_MAX_LENGTH } from './blog-post.constants';
 import { BlogPostI } from './blog-post.interface';
+import { BLOG_POST_TITLE_MAX_LENGTH } from './blog-post.constants';
 
 @Entity('blog_post')
 export class BlogPostEntity extends BaseEntity implements BlogPostI {
@@ -18,8 +18,14 @@ export class BlogPostEntity extends BaseEntity implements BlogPostI {
   })
   blog: BlogEntity;
 
+  @Column({ nullable: false })
+  blogId: number;
+
   @ManyToOne(() => UserEntity, (user) => user.blogPosts, {
     onDelete: 'CASCADE',
   })
   writer: UserEntity;
+
+  @Column({ nullable: false })
+  writerId: number;
 }

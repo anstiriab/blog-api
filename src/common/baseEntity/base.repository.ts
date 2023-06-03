@@ -3,19 +3,20 @@ import { NotFoundException } from '@nestjs/common';
 import { BaseEntity } from './base.entity';
 import {
   BaseRepositoryI,
-  GetManyArgsT,
-  GetManyOrderByT,
-  GetOneIdentifierT,
+  PaginationI,
+  SortingT,
+  IdentifierT,
   GetOneOptionsT,
   OrderEnum,
+  SortingI,
   PaginatedTypeI,
-  PaginationArgsI,
+  PaginationArgsT,
 } from './base.interface';
 
 export class BaseRepository<
     Entity extends BaseEntity,
-    Identifier extends GetOneIdentifierT<Entity>,
-    GetManyArgs extends GetManyArgsT<keyof Entity>,
+    Identifier extends IdentifierT<Entity>,
+    GetManyArgs extends PaginationI & SortingI<keyof Entity>,
   >
   extends Repository<Entity>
   implements BaseRepositoryI<Entity, Identifier, GetManyArgs>
@@ -31,21 +32,22 @@ export class BaseRepository<
   ): Promise<Entity | null> {
     const entity = await this.findOneBy(identifier);
     if (!entity && options?.isThrowException === true) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Not found');
     }
     return entity;
   }
 
   async getMany(
-    args: GetManyArgsT<keyof Entity>,
+    args: PaginationI & SortingI<keyof Entity>,
+    queryBuilder?: SelectQueryBuilder<Entity>,
   ): Promise<PaginatedTypeI<Entity>> {
-    const { pagination, orderBy } = args;
+    if (!queryBuilder) {
+      const tableName = this.metadata.givenTableName;
+      queryBuilder = this.createQueryBuilder(tableName);
+    }
 
-    const tableName = this.metadata.givenTableName;
-    let queryBuilder = this.createQueryBuilder(tableName);
-
-    queryBuilder = this.addSortingToQueryBuilder(queryBuilder, orderBy);
-
+    const { pagination, sorting } = args;
+    queryBuilder = this.addSortingToQueryBuilder(queryBuilder, sorting);
     const result = await this.getPaginatedResultFromQueryBuilder(
       queryBuilder,
       pagination,
@@ -54,15 +56,15 @@ export class BaseRepository<
     return result;
   }
 
-  protected addSortingToQueryBuilder(
+  private addSortingToQueryBuilder(
     queryBuilder: SelectQueryBuilder<Entity>,
-    orderBy: GetManyOrderByT<keyof Entity>,
+    sorting?: SortingT<keyof Entity>,
   ): SelectQueryBuilder<Entity> {
     const tableName = this.metadata.givenTableName;
 
-    if (orderBy) {
-      const sortField = orderBy.sortField as string;
-      queryBuilder.orderBy(`${tableName}.${sortField}`, orderBy.order);
+    if (sorting) {
+      const field = sorting.field as string;
+      queryBuilder.orderBy(`${tableName}.${field}`, sorting.order);
     } else {
       queryBuilder.orderBy(`${tableName}.createdAt`, OrderEnum.desc);
     }
@@ -70,9 +72,9 @@ export class BaseRepository<
     return queryBuilder;
   }
 
-  protected async getPaginatedResultFromQueryBuilder(
+  private async getPaginatedResultFromQueryBuilder(
     queryBuilder: SelectQueryBuilder<Entity>,
-    pagination: PaginationArgsI,
+    pagination: PaginationArgsT,
   ): Promise<PaginatedTypeI<Entity>> {
     const { skip, limit } = pagination;
 

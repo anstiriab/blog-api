@@ -1,6 +1,18 @@
 import { Type } from '@nestjs/common';
-import { Field, ObjectType, Int } from '@nestjs/graphql';
-import { PaginatedTypeI } from '../baseEntity/base.interface';
+import { Field, GraphQLISODateTime, ObjectType, Int } from '@nestjs/graphql';
+import { PaginatedTypeI } from '../base.interface';
+
+@ObjectType()
+export abstract class BaseEntityOutput {
+  @Field(() => Int)
+  id: number;
+
+  @Field(() => GraphQLISODateTime)
+  createdAt: Date;
+
+  @Field(() => GraphQLISODateTime)
+  updatedAt: Date;
+}
 
 export function Paginated<T>(classRef: Type<T>): Type<PaginatedTypeI<T>> {
   @ObjectType({ isAbstract: true })

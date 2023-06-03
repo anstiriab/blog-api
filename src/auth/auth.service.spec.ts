@@ -3,12 +3,12 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from 'src/user/user.entity';
-import { repositoryMockFactory } from 'src/utils/testing';
+import { customRepositoryMockFactory } from 'src/utils/testing';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.service';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { USER_REPOSITORY_TOKEN } from 'src/user/user.constants';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,8 +23,8 @@ describe('AuthService', () => {
         ConfigService,
         JwtService,
         {
-          provide: getRepositoryToken(UserEntity),
-          useFactory: repositoryMockFactory,
+          provide: USER_REPOSITORY_TOKEN,
+          useFactory: customRepositoryMockFactory,
         },
       ],
     }).compile();
@@ -36,8 +36,8 @@ describe('AuthService', () => {
 
   it('should not authenticate non-existing user', async () => {
     jest
-      .spyOn(userService, 'findOneToSignIn')
-      .mockImplementation(async () => undefined);
+      .spyOn(userService, 'getUserByEmail')
+      .mockImplementation(async () => null);
 
     try {
       await service.authenticate('test@gmail.com', 'secret');
@@ -68,7 +68,7 @@ describe('AuthService', () => {
     const token = 'token';
     jest.spyOn(jwtService, 'signAsync').mockImplementation(async () => token);
     jest
-      .spyOn(userService, 'findOneToSignIn')
+      .spyOn(userService, 'getUserByEmail')
       .mockImplementation(async () => existedUser);
     jest
       .spyOn(userService, 'verifyPassword')

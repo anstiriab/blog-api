@@ -4,22 +4,23 @@ export interface BaseEntityI {
   updatedAt: Date;
 }
 
-export type GetOneIdentifierT<Entity> = Partial<Record<keyof Entity, any>>;
+export type IdentifierT<Entity> = Partial<Record<keyof Entity, any>>;
 
 export type GetOneOptionsT = { isThrowException: boolean };
 
-type GetOneMethodT<Entity, Identifier extends GetOneIdentifierT<Entity>> = {
-  (identifier: Identifier): Promise<Entity | null>;
-  (
-    identifier: Identifier,
-    options: { isThrowException: true },
-  ): Promise<Entity>;
-  (identifier: Identifier, options?: GetOneOptionsT): Promise<Entity | null>;
+type GetOneMethodT<Entity, Id extends IdentifierT<Entity>> = {
+  (identifier: Id): Promise<Entity | null>;
+  (identifier: Id, options: { isThrowException: true }): Promise<Entity>;
+  (identifier: Id, options?: GetOneOptionsT): Promise<Entity | null>;
 };
 
-export interface PaginationArgsI {
+export type PaginationArgsT = {
   skip: number;
   limit: number;
+};
+
+export interface PaginationI {
+  pagination: PaginationArgsT;
 }
 
 export enum OrderEnum {
@@ -27,29 +28,30 @@ export enum OrderEnum {
   desc = 'DESC',
 }
 
-export type GetManyOrderByT<SortField> = {
-  sortField: SortField;
+export type SortingT<Field> = {
+  field: Field;
   order: OrderEnum;
 };
-
-export type GetManyArgsT<SortField> = {
-  pagination: PaginationArgsI;
-  orderBy?: GetManyOrderByT<SortField>;
-};
+export interface SortingI<Field> {
+  sorting?: SortingT<Field>;
+}
 
 export interface PaginatedTypeI<Entity> {
   edges: Entity[];
   count: number;
 }
 
-type GetManyMethodT<Entity, GetManyArgs extends GetManyArgsT<keyof Entity>> = {
+type GetManyMethodT<
+  Entity,
+  GetManyArgs extends PaginationI & SortingI<keyof Entity>,
+> = {
   (args: GetManyArgs): Promise<PaginatedTypeI<Entity>>;
 };
 
 export interface BaseRepositoryI<
   Entity,
-  Identifier extends GetOneIdentifierT<Entity>,
-  GetManyArgs extends GetManyArgsT<keyof Entity>,
+  Identifier extends IdentifierT<Entity>,
+  GetManyArgs extends PaginationI & SortingI<keyof Entity>,
 > {
   getOne: GetOneMethodT<Entity, Identifier>;
   getMany: GetManyMethodT<Entity, GetManyArgs>;

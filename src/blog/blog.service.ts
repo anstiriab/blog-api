@@ -1,100 +1,65 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { PaginatedTypeI } from 'src/common/baseEntity/base.interface';
 import { UserEntity } from 'src/user/user.entity';
 import { UserRoleEnum } from 'src/user/user.interface';
-import { BlogsOrderByEnum, GetBlogsArgsI } from './blog.interface';
-import { BlogEntity } from './blog.entity';
+import { BlogI, BlogRepositoryI, GetManyBlogsArgsT } from './blog.interface';
 import { CreateBlogInput, UpdateBlogInput } from './dto';
+import { BLOG_REPOSITORY_TOKEN } from './blog.constants';
 
 @Injectable()
 export class BlogService {
   constructor(
-    @InjectRepository(BlogEntity)
-    private blogRepository: Repository<BlogEntity>,
+    @Inject(BLOG_REPOSITORY_TOKEN)
+    private blogRepository: BlogRepositoryI,
   ) {}
 
-  async findAll(args: GetBlogsArgsI): Promise<PaginatedTypeI<BlogEntity>> {
-    const { filter, orderBy, skip, limit } = args;
-    const queryBuilder = this.blogRepository
-      .createQueryBuilder('blog')
-      .leftJoinAndSelect('blog.writer', 'user');
-
-    if (filter?.writerId) {
-      queryBuilder.where('blog.writerId = :writerId', {
-        writerId: filter.writerId,
-      });
-    }
-
-    if (orderBy && orderBy === BlogsOrderByEnum.createdAtAsc) {
-      queryBuilder.orderBy('blog.createdAt', 'ASC');
-    } else {
-      queryBuilder.orderBy('blog.createdAt', 'DESC');
-    }
-
-    const count = await queryBuilder.getCount();
-    queryBuilder.skip(skip);
-    queryBuilder.take(limit);
-
-    const blogs = await queryBuilder.getMany();
-
-    return { count, edges: blogs };
-  }
-
-  async findOne(id: number): Promise<BlogEntity> {
-    const blog = await this.blogRepository.findOne({
-      where: { id },
-      relations: { writer: true },
-    });
-    if (!blog) {
-      throw new NotFoundException('Blog not found');
-    }
+  async getBlog(id: number): Promise<BlogI> {
+    const blog = await this.blogRepository.getOne(
+      { id },
+      { isThrowException: true },
+    );
     return blog;
   }
 
-  async create(user: UserEntity, input: CreateBlogInput): Promise<BlogEntity> {
-    const blog = await this.blogRepository.create(input);
-    blog.writer = user;
+  async getBlogs(args: GetManyBlogsArgsT): Promise<PaginatedTypeI<BlogI>> {
+    const result = await this.blogRepository.getMany(args);
+    return result;
+  }
 
-    const newBlog = await this.blogRepository.save(blog);
+  async createBlog(user: UserEntity, input: CreateBlogInput): Promise<BlogI> {
+    const newBlog = await this.blogRepository.createOne({
+      ...input,
+      writer: user,
+    });
     return newBlog;
   }
 
-  async update(
+  async updateBlog(
     user: UserEntity,
     id: number,
     input: UpdateBlogInput,
-  ): Promise<BlogEntity> {
-    const blog = await this.findOne(id);
+  ): Promise<BlogI> {
+    const blog = await this.getBlog(id);
     if (!this.checkAbility(user, blog)) {
       throw new ForbiddenException();
     }
 
-    const updatedBlog = Object.assign(blog, input);
-    const savedBlog = await this.blogRepository.save(updatedBlog);
-
+    const savedBlog = await this.blogRepository.updateOne(blog, input);
     return savedBlog;
   }
 
-  async remove(user: UserEntity, id: number): Promise<BlogEntity> {
-    const blog = await this.findOne(id);
+  async removeBlog(user: UserEntity, id: number): Promise<BlogI> {
+    const blog = await this.getBlog(id);
     if (!this.checkAbility(user, blog)) {
       throw new ForbiddenException();
     }
 
-    const deletedBlog = await this.blogRepository.remove(blog);
-    deletedBlog.id = id;
-
+    const deletedBlog = await this.blogRepository.removeOne(blog);
     return deletedBlog;
   }
 
-  checkAbility(user: UserEntity, blog: BlogEntity): boolean {
-    if (user.role === UserRoleEnum.writer && blog.writer.id !== user.id) {
+  private checkAbility(user: UserEntity, blog: BlogI): boolean {
+    if (user.role === UserRoleEnum.writer && blog.writerId !== user.id) {
       return false;
     }
     return true;

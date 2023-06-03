@@ -7,19 +7,28 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { NAME_LENGTH, UserRoleEnum } from '../user.interface';
+import { Transform } from 'class-transformer';
+import { UserRoleEnum } from '../user.interface';
+import { NAME_LENGTH } from '../user.constants';
+
+const transformName = (name: string) => {
+  const value = name.trim();
+  return value[0].toUpperCase() + value.substring(1).toLowerCase();
+};
 
 @InputType()
 export class CreateUserInput {
   @IsNotEmpty()
   @IsAlpha()
   @MaxLength(NAME_LENGTH)
+  @Transform(({ value }) => transformName(value))
   @Field(() => String)
   firstName: string;
 
   @IsNotEmpty()
   @IsAlpha()
   @MaxLength(NAME_LENGTH)
+  @Transform(({ value }) => transformName(value))
   @Field(() => String)
   lastName: string;
 
@@ -35,7 +44,7 @@ export class CreateUserInput {
 
   @IsNotEmpty()
   @IsString()
-  // @IsStrongPassword()
+  @Transform(({ value }) => value.trim())
   @Field(() => String)
   password: string;
 }

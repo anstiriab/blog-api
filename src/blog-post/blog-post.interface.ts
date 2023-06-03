@@ -1,6 +1,9 @@
 import {
   BaseEntityI,
-  PaginationArgsI,
+  BaseRepositoryI,
+  SortingI,
+  PaginatedTypeI,
+  PaginationI,
 } from 'src/common/baseEntity/base.interface';
 import { BlogI } from 'src/blog/blog.interface';
 import { UserI } from 'src/user/user.interface';
@@ -8,23 +11,45 @@ import { UserI } from 'src/user/user.interface';
 export interface BlogPostI extends BaseEntityI {
   title: string;
   content: string;
-  blog: BlogI;
-  writer: UserI;
+  blog?: BlogI;
+  blogId: number;
+  writer?: UserI;
+  writerId: number;
 }
 
+export type GetOneBlogPostIdentifierT = { id: number };
+
+export enum BlogPostsSortingFieldsEnum {
+  title = 'title',
+  createdAt = 'createdAt',
+}
 export interface BlogPostsFilterI {
   blogId?: number;
   writerId?: number;
 }
 
-export enum BlogPostsOrderByEnum {
-  titleAsc = 'titleAsc',
-  titleDesc = 'titleDesc',
-  createdAtAsc = 'createdAtAsc',
-  createdAtDesc = 'createdAtDesc',
-}
+export type GetManyBlogPostsArgsT = PaginationI &
+  SortingI<keyof typeof BlogPostsSortingFieldsEnum> & {
+    filter?: BlogPostsFilterI;
+  };
 
-export interface GetBlogPostsArgsI extends PaginationArgsI {
-  filter?: BlogPostsFilterI;
-  orderBy?: BlogPostsOrderByEnum;
+export type CreateBlogPostT = {
+  title: string;
+  content: string;
+  blog: BlogI;
+  writer: UserI;
+};
+
+export type UpdateBlogPostT = Partial<Omit<CreateBlogPostT, 'writer'>>;
+
+export interface BlogPostRepositoryI
+  extends BaseRepositoryI<
+    BlogPostI,
+    GetOneBlogPostIdentifierT,
+    GetManyBlogPostsArgsT
+  > {
+  getMany: (args: GetManyBlogPostsArgsT) => Promise<PaginatedTypeI<BlogPostI>>;
+  createOne: (input: CreateBlogPostT) => Promise<BlogPostI>;
+  updateOne: (blog: BlogPostI, input: UpdateBlogPostT) => Promise<BlogPostI>;
+  removeOne: (blog: BlogPostI) => Promise<BlogPostI>;
 }

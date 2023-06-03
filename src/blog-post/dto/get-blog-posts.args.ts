@@ -5,9 +5,13 @@ import {
   Int,
   registerEnumType,
 } from '@nestjs/graphql';
-import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
-import { PaginationArgs } from 'src/common/pagination/pagination.args';
-import { BlogPostsOrderByEnum } from '../blog-post.interface';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, Min } from 'class-validator';
+import { SortingInput, PaginationArgs } from 'src/common/baseEntity/dto';
+import { BlogPostsSortingFieldsEnum } from '../blog-post.interface';
+
+registerEnumType(BlogPostsSortingFieldsEnum, {
+  name: 'BlogPostsSortingFieldsEnum',
+});
 
 @InputType()
 export class BlogPostsFilterInput {
@@ -24,18 +28,21 @@ export class BlogPostsFilterInput {
   writerId?: number;
 }
 
-registerEnumType(BlogPostsOrderByEnum, {
-  name: 'BlogPostsOrderByEnum',
-});
+@InputType()
+export class BlogPostsSortingInput extends SortingInput<BlogPostsSortingFieldsEnum> {
+  @IsNotEmpty()
+  @IsEnum(BlogPostsSortingFieldsEnum)
+  @Field(() => BlogPostsSortingFieldsEnum)
+  field: BlogPostsSortingFieldsEnum;
+}
 
 @ArgsType()
-export class GetBlogPostsArgs extends PaginationArgs {
+export class GetManyBlogPostArgs extends PaginationArgs {
   @IsOptional()
   @Field(() => BlogPostsFilterInput, { nullable: true })
   filter?: BlogPostsFilterInput;
 
   @IsOptional()
-  @IsEnum(BlogPostsOrderByEnum)
-  @Field(() => BlogPostsOrderByEnum, { nullable: true })
-  orderBy?: BlogPostsOrderByEnum;
+  @Field(() => BlogPostsSortingInput, { nullable: true })
+  sorting?: BlogPostsSortingInput;
 }

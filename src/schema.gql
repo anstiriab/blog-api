@@ -8,17 +8,17 @@ type Blog {
   id: Int!
   title: String!
   updatedAt: DateTime!
-  writer: User!
+  writer: User
 }
 
 type BlogPost {
-  blog: Blog!
+  blog: Blog
   content: String!
   createdAt: DateTime!
   id: Int!
   title: String!
   updatedAt: DateTime!
-  writer: User!
+  writer: User
 }
 
 input BlogPostsFilterInput {
@@ -26,20 +26,27 @@ input BlogPostsFilterInput {
   writerId: Int
 }
 
-enum BlogPostsOrderByEnum {
-  createdAtAsc
-  createdAtDesc
-  titleAsc
-  titleDesc
+enum BlogPostsSortingFieldsEnum {
+  createdAt
+  title
+}
+
+input BlogPostsSortingInput {
+  field: BlogPostsSortingFieldsEnum!
+  order: OrderEnum!
 }
 
 input BlogsFilterInput {
   writerId: Int
 }
 
-enum BlogsOrderByEnum {
-  createdAtAsc
-  createdAtDesc
+enum BlogsSortingFieldsEnum {
+  createdAt
+}
+
+input BlogsSortingInput {
+  field: BlogsSortingFieldsEnum!
+  order: OrderEnum!
 }
 
 input CreateBlogInput {
@@ -79,6 +86,11 @@ type Mutation {
   updateUser(input: UpdateUserInput!): User!
 }
 
+enum OrderEnum {
+  asc
+  desc
+}
+
 type PaginatedBlogOutput {
   count: Int!
   edges: [Blog!]
@@ -89,13 +101,18 @@ type PaginatedBlogPostOutput {
   edges: [BlogPost!]
 }
 
+type PaginatedUserOutput {
+  count: Int!
+  edges: [User!]
+}
+
 type Query {
   blog(id: Int!): Blog!
   blogPost(id: Int!): BlogPost!
-  blogPosts(filter: BlogPostsFilterInput, limit: Int! = 10, orderBy: BlogPostsOrderByEnum, skip: Int! = 0): PaginatedBlogPostOutput!
-  blogs(filter: BlogsFilterInput, limit: Int! = 10, orderBy: BlogsOrderByEnum, skip: Int! = 0): PaginatedBlogOutput!
+  blogPosts(filter: BlogPostsFilterInput, limit: Int! = 10, skip: Int! = 0, sorting: BlogPostsSortingInput): PaginatedBlogPostOutput!
+  blogs(filter: BlogsFilterInput, limit: Int! = 10, skip: Int! = 0, sorting: BlogsSortingInput): PaginatedBlogOutput!
   user(id: Int!): User!
-  users: [User!]!
+  users(limit: Int! = 10, skip: Int! = 0, sorting: UsersSortingInput): PaginatedUserOutput!
 }
 
 input SignInInput {
@@ -129,6 +146,7 @@ type User {
   createdAt: DateTime!
   email: String!
   firstName: String!
+  fullName: String!
   id: Int!
   lastName: String!
   role: UserRoleEnum!
@@ -138,4 +156,14 @@ type User {
 enum UserRoleEnum {
   moderator
   writer
+}
+
+enum UsersSortingFieldsEnum {
+  createdAt
+  email
+}
+
+input UsersSortingInput {
+  field: UsersSortingFieldsEnum!
+  order: OrderEnum!
 }

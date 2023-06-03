@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { Repository } from 'typeorm';
-import { MockType, repositoryMockFactory } from 'src/utils/testing';
+import { ForbiddenException } from '@nestjs/common';
+import authConfig from 'src/config/auth.config';
+import { MockType, customRepositoryMockFactory } from 'src/utils/testing';
 import { UserService } from './user.service';
 import { UserEntity } from './user.entity';
-import authConfig from 'src/config/auth.config';
-import { UserRoleEnum } from './user.interface';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { UserI, UserRoleEnum } from './user.interface';
+import { UserRepository } from './user.repository';
+import { USER_REPOSITORY_TOKEN } from './user.constants';
 
 describe('UserService', () => {
   let service: UserService;
-  let repositoryMock: MockType<Repository<UserEntity>>;
-  let user: UserEntity;
+  let customRepositoryMock: MockType<UserRepository>;
+  let user: UserI;
   let hashedPassword: string;
 
   beforeEach(async () => {
@@ -21,14 +21,14 @@ describe('UserService', () => {
       providers: [
         UserService,
         {
-          provide: getRepositoryToken(UserEntity),
-          useFactory: repositoryMockFactory,
+          provide: USER_REPOSITORY_TOKEN,
+          useFactory: customRepositoryMockFactory,
         },
       ],
     }).compile();
 
     service = module.get<UserService>(UserService);
-    repositoryMock = module.get(getRepositoryToken(UserEntity));
+    customRepositoryMock = module.get(USER_REPOSITORY_TOKEN);
   });
 
   it('should hash password', async () => {
@@ -48,16 +48,14 @@ describe('UserService', () => {
     existedUser.lastName = 'Doe';
     existedUser.role = UserRoleEnum.writer;
     existedUser.password = hashedPassword;
-    repositoryMock.findOne.mockReturnValue(existedUser);
+    customRepositoryMock.getOne.mockReturnValue(existedUser);
 
-    user = await service.findOneToSignIn(email);
+    const result = await service.getUserByEmail(email);
+    if (result) user = result;
 
     expect(user).toEqual(existedUser);
     expect(user).toHaveProperty('password');
-    expect(repositoryMock.findOne).toHaveBeenCalledWith({
-      where: { email },
-      select: ['password', 'id', 'firstName', 'lastName', 'role'],
-    });
+    expect(customRepositoryMock.getOne).toHaveBeenCalledWith({ email });
   });
 
   it('should verify the password', async () => {
@@ -71,40 +69,32 @@ describe('UserService', () => {
     const userId = 1000;
     const user = new UserEntity();
     user.id = userId;
-    repositoryMock.findOneBy.mockReturnValue(user);
+    customRepositoryMock.getOne.mockReturnValue(user);
 
-    const result = await service.findOne(userId);
+    const result = await service.getUser(userId);
 
     expect(result).toEqual(user);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({ id: userId });
-  });
-
-  it('should not find user', async () => {
-    const userId = 1000;
-    repositoryMock.findOneBy.mockReturnValue(undefined);
-
-    let result;
-    try {
-      result = await service.findOne(userId);
-      expect(true).toBe(false);
-    } catch (error) {
-      expect(error).toBeInstanceOf(NotFoundException);
-    }
-
-    if (result) expect(true).toBe(false);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({ id: userId });
+    expect(customRepositoryMock.getOne).toHaveBeenCalledWith(
+      { id: userId },
+      { isThrowException: true },
+    );
   });
 
   it('should return list of users', async () => {
     const moderator = new UserEntity();
     const writer = new UserEntity();
-    repositoryMock.find.mockReturnValue([moderator, writer]);
+    customRepositoryMock.getMany.mockReturnValue({
+      count: 2,
+      edges: [moderator, writer],
+    });
 
-    const result = await service.findAll();
+    const pagination = { limit: 2, skip: 0 };
+    const result = await service.getUsers({ pagination });
 
-    expect(result).toContain(moderator);
-    expect(result).toContain(writer);
-    expect(repositoryMock.find).toHaveBeenCalledWith();
+    expect(result.count).toBe(2);
+    expect(result.edges).toContain(moderator);
+    expect(result.edges).toContain(writer);
+    expect(customRepositoryMock.getMany).toHaveBeenCalledWith({ pagination });
   });
 
   it('should create user', async () => {
@@ -118,23 +108,22 @@ describe('UserService', () => {
     const newUser = new UserEntity();
     Object.assign(newUser, userData);
 
-    repositoryMock.create.mockReturnValue(newUser);
-    repositoryMock.findOneBy.mockReturnValue(undefined);
+    customRepositoryMock.createOne.mockReturnValue(newUser);
+    jest.spyOn(service, 'getUserByEmail').mockImplementation(async () => null);
 
-    user = await service.create(userData);
+    user = await service.createUser(userData);
 
     expect(user).toBeInstanceOf(UserEntity);
-    expect(user).not.toHaveProperty('password');
-    expect(repositoryMock.create).toHaveBeenCalledWith(userData);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({
-      email: userData.email,
-    });
+    expect(customRepositoryMock.createOne).toHaveBeenCalledWith(userData);
+    expect(service.getUserByEmail).toHaveBeenCalledWith(userData.email);
   });
 
   it('should not create user with same email', async () => {
     const existedUser = new UserEntity();
     existedUser.email = 'test@gmail.com';
-    repositoryMock.findOneBy.mockReturnValue(existedUser);
+    jest
+      .spyOn(service, 'getUserByEmail')
+      .mockImplementation(async () => existedUser);
 
     const userData = {
       email: existedUser.email,
@@ -146,15 +135,13 @@ describe('UserService', () => {
 
     let result;
     try {
-      result = await service.create(userData);
+      result = await service.createUser(userData);
     } catch (error) {
       expect(error).toBeInstanceOf(ForbiddenException);
     }
 
     if (result) expect(true).toBe(false);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({
-      email: existedUser.email,
-    });
+    expect(service.getUserByEmail).toHaveBeenCalledWith(userData.email);
   });
 
   it('should update user', async () => {
@@ -165,15 +152,15 @@ describe('UserService', () => {
     };
 
     Object.assign(user, newUserData);
-    repositoryMock.save.mockReturnValue(user);
-    repositoryMock.findOneBy.mockReturnValue(undefined);
+    customRepositoryMock.updateOne.mockReturnValue(user);
+    customRepositoryMock.getOne.mockReturnValue(undefined);
 
-    const result = await service.update(user, newUserData);
+    const result = await service.updateUser(user, newUserData);
 
     expect(result).toBeInstanceOf(UserEntity);
     expect(result.email).toEqual(newUserData.email);
     expect(result.lastName).toEqual(newUserData.lastName);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({
+    expect(customRepositoryMock.getOne).toHaveBeenCalledWith({
       email: newUserData.email,
     });
   });
@@ -182,7 +169,7 @@ describe('UserService', () => {
     const existedUser = new UserEntity();
     existedUser.id = 1;
     existedUser.email = 'new-test@gmail.com';
-    repositoryMock.findOneBy.mockReturnValue(existedUser);
+    customRepositoryMock.getOne.mockReturnValue(existedUser);
 
     const currentUser = new UserEntity();
     currentUser.id = 2;
@@ -190,7 +177,7 @@ describe('UserService', () => {
 
     let result;
     try {
-      result = await service.update(currentUser, {
+      result = await service.updateUser(currentUser, {
         email: existedUser.email,
       });
     } catch (error) {
@@ -198,16 +185,16 @@ describe('UserService', () => {
     }
 
     if (result) expect(true).toBe(false);
-    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({
+    expect(customRepositoryMock.getOne).toHaveBeenCalledWith({
       email: existedUser.email,
     });
   });
 
   it('should remove user', async () => {
-    repositoryMock.remove.mockReturnValue(user);
-    const result = await service.remove(user);
+    customRepositoryMock.removeOne.mockReturnValue(user);
+    const result = await service.removeUser(user);
 
     expect(result.id).toEqual(user.id);
-    expect(repositoryMock.remove).toHaveBeenCalledWith(user);
+    expect(customRepositoryMock.removeOne).toHaveBeenCalledWith(user);
   });
 });

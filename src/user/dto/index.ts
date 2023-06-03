@@ -1,3 +1,4 @@
+export { GetManyUserArgs } from './get-users.args';
 export { CreateUserInput } from './create-user.input';
 export { UpdateUserInput } from './update-user.input';
-export { UserOutput } from './user.output';
+export { UserOutput, PaginatedUserOutput } from './user.output';

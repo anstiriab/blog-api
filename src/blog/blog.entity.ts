@@ -16,6 +16,9 @@ export class BlogEntity extends BaseEntity implements BlogI {
   @ManyToOne(() => UserEntity, (user) => user.blogs, { onDelete: 'CASCADE' })
   writer: UserEntity;
 
+  @Column({ nullable: false })
+  writerId: number;
+
   @OneToMany(() => BlogPostEntity, (blogPost) => blogPost.blog)
-  blogPosts: BlogPostEntity[];
+  blogPosts?: BlogPostEntity[];
 }

@@ -1,7 +1,6 @@
 import { ObjectType, Field, registerEnumType } from '@nestjs/graphql';
-import { BaseEntityOutput } from 'src/common/baseEntity/base.output';
+import { BaseEntityOutput, Paginated } from 'src/common/baseEntity/dto';
 import { UserRoleEnum } from '../user.interface';
-import { Paginated } from 'src/common/pagination/pagination.output';
 
 @ObjectType('User')
 export class UserOutput extends BaseEntityOutput {

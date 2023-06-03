@@ -9,7 +9,7 @@ import {
   BlogOutput,
   CreateBlogInput,
   UpdateBlogInput,
-  GetBlogsArgs,
+  GetManyBlogsArgs,
   PaginatedBlogOutput,
 } from './dto';
 
@@ -18,19 +18,20 @@ export class BlogResolver {
   constructor(private readonly blogService: BlogService) {}
 
   @Query(() => PaginatedBlogOutput, { name: 'blogs' })
-  findAll(@Args() args: GetBlogsArgs) {
-    return this.blogService.findAll(args);
+  getBlogs(@Args() args: GetManyBlogsArgs) {
+    const { skip, limit } = args;
+    return this.blogService.getBlogs({ ...args, pagination: { skip, limit } });
   }
 
   @Query(() => BlogOutput, { name: 'blog' })
-  findOne(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
-    return this.blogService.findOne(id);
+  getBlog(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
+    return this.blogService.getBlog(id);
   }
 
   @Mutation(() => BlogOutput)
   @Roles(UserRoleEnum.writer)
   createBlog(@User() user: UserEntity, @Args('input') input: CreateBlogInput) {
-    return this.blogService.create(user, input);
+    return this.blogService.createBlog(user, input);
   }
 
   @Mutation(() => BlogOutput)
@@ -40,7 +41,7 @@ export class BlogResolver {
     @Args('id', { type: () => Int }, ParseIntPipe) id: number,
     @Args('input') input: UpdateBlogInput,
   ) {
-    return this.blogService.update(user, id, input);
+    return this.blogService.updateBlog(user, id, input);
   }
 
   @Mutation(() => BlogOutput)
@@ -49,6 +50,6 @@ export class BlogResolver {
     @User() user: UserEntity,
     @Args('id', { type: () => Int }, ParseIntPipe) id: number,
   ) {
-    return this.blogService.remove(user, id);
+    return this.blogService.removeBlog(user, id);
   }
 }
