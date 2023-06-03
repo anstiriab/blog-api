@@ -9,7 +9,7 @@ User have one of two roles: Writer, Moderator.
 
 [Link for API & GraphQL Playground](https://white-breeze-1258.fly.dev/graphql)
 
-[Postman collection](https://www.postman.com/lunar-module-technologist-11734317/workspace/blog-api/collection/26140012-643ef47d-ab23-42f6-905e-0a37d24a0561?action=share&creator=26140012)
+[Postman collection](https://elements.getpostman.com/redirect?entityId=26140012-bd7c7bbe-530f-4d05-b1c7-84166cec427e&entityType=collection)
 
 ## Running the app:
 
