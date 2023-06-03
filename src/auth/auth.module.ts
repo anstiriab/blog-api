@@ -13,7 +13,7 @@ import { AuthGuard } from './auth.guard';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const tokenConfig = config.get<AuthConfigI>('auth').accessToken;
+        const tokenConfig = config.getOrThrow<AuthConfigI>('auth').accessToken;
         const { expiresIn, salt } = tokenConfig;
         return {
           global: true,

@@ -7,10 +7,10 @@ import { AppConfigI } from './config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const configService = app.get(ConfigService);
-  const port = configService.get<AppConfigI>('app').port;
+  const port = configService.getOrThrow<AppConfigI>('app').port;
 
   await app.listen(port);
 }

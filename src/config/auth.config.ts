@@ -14,11 +14,11 @@ export default registerAs(
   'auth',
   (): AuthConfigI => ({
     accessToken: {
-      salt: process.env.ACCESS_TOKEN_SALT,
+      salt: process.env.ACCESS_TOKEN_SALT as string,
       expiresIn: '1d',
     },
     password: {
-      salt: process.env.PASSWORD_SALT,
+      salt: process.env.PASSWORD_SALT as string,
     },
   }),
 );

@@ -15,6 +15,6 @@ export default registerAs(
   'app',
   (): AppConfigI => ({
     env: process.env.NODE_ENV as EnvironmentEnum,
-    port: parseInt(process.env.PORT, 10) || 3000,
+    port: parseInt(process.env.PORT as string, 10) || 3000,
   }),
 );

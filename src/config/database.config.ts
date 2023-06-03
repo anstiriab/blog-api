@@ -12,7 +12,7 @@ export default registerAs(
   'database',
   (): DatabaseConfigI => ({
     type: 'postgres',
-    url: process.env.DB_URL,
+    url: process.env.DB_URL as string,
     entities: [join(__dirname, '/../**', '*.entity.{ts,js}')],
     synchronize: true,
   }),
