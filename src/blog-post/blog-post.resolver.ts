@@ -1,10 +1,20 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { ParseIntPipe } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { User } from 'src/auth/user.decorator';
 import { UserRoleEnum } from 'src/user/user.interface';
 import { UserEntity } from 'src/user/user.entity';
 import { BlogPostService } from './blog-post.service';
+import { BlogService } from 'src/blog/blog.service';
+import { UserService } from 'src/user/user.service';
 import {
   BlogPostOutput,
   CreateBlogPostInput,
@@ -15,7 +25,11 @@ import {
 
 @Resolver(() => BlogPostOutput)
 export class BlogPostResolver {
-  constructor(private readonly blogPostService: BlogPostService) {}
+  constructor(
+    private readonly blogPostService: BlogPostService,
+    private readonly blogService: BlogService,
+    private readonly userService: UserService,
+  ) {}
 
   @Query(() => PaginatedBlogPostOutput, { name: 'blogPosts' })
   getBlogPosts(@Args() args: GetManyBlogPostArgs) {
@@ -29,6 +43,18 @@ export class BlogPostResolver {
   @Query(() => BlogPostOutput, { name: 'blogPost' })
   getBlogPost(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
     return this.blogPostService.getBlogPost(id);
+  }
+
+  @ResolveField()
+  async blog(@Parent() blogPost) {
+    const { blogId } = blogPost;
+    return this.blogService.getBlog(blogId);
+  }
+
+  @ResolveField()
+  async writer(@Parent() blogPost) {
+    const { writerId } = blogPost;
+    return this.userService.getUser(writerId);
   }
 
   @Mutation(() => BlogPostOutput)

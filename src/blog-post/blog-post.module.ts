@@ -6,9 +6,10 @@ import { BlogPostResolver } from './blog-post.resolver';
 import { BlogModule } from 'src/blog/blog.module';
 import { BlogPostRepository } from './blog-post.repository';
 import { BLOG_POST_REPOSITORY_TOKEN } from './blog-post.constants';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([BlogPostEntity]), BlogModule],
+  imports: [TypeOrmModule.forFeature([BlogPostEntity]), BlogModule, UserModule],
   providers: [
     BlogPostResolver,
     BlogPostService,

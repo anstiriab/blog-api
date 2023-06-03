@@ -1,10 +1,19 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { ParseIntPipe } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { User } from 'src/auth/user.decorator';
 import { UserEntity } from 'src/user/user.entity';
 import { UserRoleEnum } from 'src/user/user.interface';
 import { BlogService } from './blog.service';
+import { UserService } from 'src/user/user.service';
 import {
   BlogOutput,
   CreateBlogInput,
@@ -15,7 +24,10 @@ import {
 
 @Resolver(() => BlogOutput)
 export class BlogResolver {
-  constructor(private readonly blogService: BlogService) {}
+  constructor(
+    private readonly blogService: BlogService,
+    private readonly userService: UserService,
+  ) {}
 
   @Query(() => PaginatedBlogOutput, { name: 'blogs' })
   getBlogs(@Args() args: GetManyBlogsArgs) {
@@ -26,6 +38,12 @@ export class BlogResolver {
   @Query(() => BlogOutput, { name: 'blog' })
   getBlog(@Args('id', { type: () => Int }, ParseIntPipe) id: number) {
     return this.blogService.getBlog(id);
+  }
+
+  @ResolveField()
+  async writer(@Parent() blog) {
+    const { writerId } = blog;
+    return this.userService.getUser(writerId);
   }
 
   @Mutation(() => BlogOutput)

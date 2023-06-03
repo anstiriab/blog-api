@@ -11,8 +11,16 @@ type Blog {
   writer: User
 }
 
+type BlogBase {
+  createdAt: DateTime!
+  description: String!
+  id: Int!
+  title: String!
+  updatedAt: DateTime!
+}
+
 type BlogPost {
-  blog: Blog
+  blog: BlogBase
   content: String!
   createdAt: DateTime!
   id: Int!
